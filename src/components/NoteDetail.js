@@ -1,67 +1,64 @@
 import React from "react";
-import PropTypes from 'prop-types';
-import {showFormattedDate} from '../utils/index'
-import {BiArchiveIn, BiArchiveOut, BiTrashAlt} from 'react-icons/bi';
-import { archiveNote, deleteNote, unarchiveNote } from "../utils/local-data";
+import { FiTrash } from "react-icons/fi";
+import { MdArchive, MdUnarchive } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import { showFormattedDate } from "../utils";
+import { archiveNote, deleteNote, getActiveNotes, unarchiveNote } from "../utils/api";
 
-function NoteDetail({id, title, body , createdAt, archived}) {
+function NoteDetail({id, title, createdAt, body, archived}){
 
-    const navigate = useNavigate()
-    const noteID = id;
-    
-    function onArchiveEventHandler(){
-        archiveNote(noteID);
+    const navigate = useNavigate();
+    const [notes, setNotes] = React.useState([]);
+
+    function onDeleteNote(){
+        deleteNote(id);
+        setNotes(() => {
+            getActiveNotes();
+        })
         navigate('/');
-    }
+    };
 
-    function onActiveEventHandler(){
-        unarchiveNote(noteID);
-        navigate('/')
-    }
-
-    function onDeleteEventHandler(){
-        deleteNote(noteID);
+    function onArchived(){
+        archiveNote(id);
+        setNotes(() => {
+            getActiveNotes();
+        })
         navigate('/');
+    };
+
+    function onUnarchived(){
+        unarchiveNote(id);
+        setNotes(() => {
+            getActiveNotes();
+        })
+        navigate('/');
+    };
+
+    if(archived){
+        return(
+        <section className="detail-page">
+        <h3 className="detail-page__title">{title}</h3>
+        <p className="detail-page__createdAt">{showFormattedDate(createdAt)}</p>
+        <div className="detail-page__body">{body}</div>
+        <div className="detail-page__action">
+            <button className="action" type="button" title="Aktifkan" onClick={onUnarchived}><MdUnarchive/></button>
+            <button className="action" type="button" title="Hapus" onClick={onDeleteNote}><FiTrash/></button>
+        </div>
+    </section>
+    )
     }
 
-    const date = showFormattedDate(createdAt);
-        if(archived === true){
-            return (
-                <section className="detail-page">
-                    <h3 className="detail-page__title">{title}</h3>
-                    <p className="detail-page__createdAt">{date}</p>
-                    <div className="detail-page__body">{body}</div>
-        
-                    <div className="detail-page__action">
-                    <button className="action" type="button" title="Aktifkan" onClick={onActiveEventHandler}><BiArchiveOut/></button>
-                    <button className="action" type="button" title="Hapus" onClick={onDeleteEventHandler}><BiTrashAlt/></button>
-                    </div>
-                </section>
-                
-            )
-        }
-
-        return (
-            <section className="detail-page">
-                <h3 className="detail-page__title">{title}</h3>
-                <p className="detail-page__createdAt">{date}</p>
-                <div className="detail-page__body">{body}</div>
-    
-                <div className="detail-page__action">
-                <button className="action" type="button" title="Arsipkan" onClick={onArchiveEventHandler}><BiArchiveIn/></button>
-                    <button className="action" type="button" title="Hapus" onClick={onDeleteEventHandler}><BiTrashAlt/></button>
-                </div>
-            </section>
-        )
-}
-
-NoteDetail.propTypes = {
-    id: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    body: PropTypes.string.isRequired,
-    createdAt: PropTypes.string.isRequired,
-    archived: PropTypes.bool.isRequired,
+    return(
+        <section className="detail-page">
+            <h3 className="detail-page__title">{title}</h3>
+            <p className="detail-page__createdAt">{showFormattedDate(createdAt)}</p>
+            <div className="detail-page__body">{body}</div>
+            <div className="detail-page__action">
+                <button className="action" type="button" title="Arsipkan" onClick={onArchived}><MdArchive/></button>
+                <button className="action" type="button" title="Hapus" onClick={onDeleteNote}><FiTrash/></button>
+            </div>
+        </section>
+    )
 }
 
 export default NoteDetail;

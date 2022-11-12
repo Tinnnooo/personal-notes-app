@@ -90,7 +90,7 @@ async function getActiveNotes() {
   const responseJson = await response.json();
 
   if (responseJson.status !== 'success') {
-    return { error: true, data: [] };
+    return { error: true, data: null };
   }
 
   return { error: false, data: responseJson.data };

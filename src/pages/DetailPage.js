@@ -1,38 +1,38 @@
 import React from "react";
-import PropTypes from 'prop-types';
-import { useParams } from "react-router-dom";
+import {  useParams } from "react-router-dom";
 import NoteDetail from "../components/NoteDetail";
-import { getNote } from '../utils/local-data'
+import { getNote } from "../utils/api";
 import NotFound from "./NotFound";
 
-function DetailPageWrapper(){
-    const { id } = useParams();
-    return <DetailPage id={id} />;
+function DetailPage() {
+  const { id } = useParams();
+  const [note, setNote] = React.useState(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    getNote(id).then(({ data }) => {
+      setNote(data);
+      setIsLoading(false);
+    })
+  }, [id]);
+
+          if (isLoading) {
+            return <p>Loading...</p>;
+          }
+
+          if (note === null) {
+            return (
+              <div>
+                <NotFound />;
+              </div>
+            )
+          }
+
+          return (
+            <div>
+              <NoteDetail {...note}/>
+            </div>
+          ) 
 }
 
-class DetailPage extends React.Component{
-    constructor(props){
-        super(props);
-
-        this.state = {
-            note: getNote(props.id),
-        };
-    }
-    
-    render(){
-        if(this.state.note == null){
-            return <NotFound/>
-        }
-        return(
-            <>
-                <NoteDetail {...this.state.note}/>
-            </>
-        )
-    }
-}
-
-DetailPage.propTypes = {
-    id: PropTypes.string.isRequired,
-}
-
-export default DetailPageWrapper;
+export default DetailPage;

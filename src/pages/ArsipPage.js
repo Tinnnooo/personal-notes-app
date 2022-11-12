@@ -1,63 +1,54 @@
 import React from "react";
-import PropTypes from 'prop-types';
 import { useSearchParams } from "react-router-dom";
-import NotesList from '../components/NotesList';
+import { getArchivedNotes } from "../utils/api";
+import NotesList from "../components/NotesList";
 import SearchBar from "../components/SearchBar";
-import { getArchivedNotes } from "../utils/local-data";
+import LocaleContext from "../contexts/LocaleContext";
 
-function ArsipPageWrapper(){
+function ArsipPage(){
     const [searchParams, setSearchParams] = useSearchParams();
+    const [notes, setNotes] = React.useState([]);
+    const [keyword, setKeyword] = React.useState(() => {
+        return searchParams.get("keyword") || ""
+    });
+    const [isLoading, setIsLoading] = React.useState(true);
+    const {language} = React.useContext(LocaleContext);
 
-    const keyword = searchParams.get('keyword') || '';
+    React.useEffect(() => {
+        getArchivedNotes().then(({data}) => {
+            setNotes(data);
+            setIsLoading(false);
+        });
+    },[]);
 
-    function changeSearchParams(keyword){
-        setSearchParams({keyword})
+    function onKeywordChangeHandler(keyword){
+        setKeyword(keyword);
+        setSearchParams(keyword);
     }
 
-    return <ArsipPage defaultKeyword={keyword} keywordChange={changeSearchParams}/>
-}
+    const filteredNotes = notes.filter((note) => {
+        return note.title.toLowerCase().includes(keyword.toLowerCase()
+        )
+    });
 
-class ArsipPage extends React.Component{
-    constructor(props){
-        super(props);
-
-        this.state = {
-            notes: getArchivedNotes(),
-            keyword: props.defaultKeyword || '',
+        if(isLoading){
+            return <p>Loading...</p>
         }
 
-        this.onArsipKeywordChangeHandler = this.onArsipKeywordChangeHandler.bind(this);
-    }
-
-    onArsipKeywordChangeHandler(keyword){
-        this.setState(() => {
-            return{
-                keyword,
-            }
-        });
-
-        this.props.keywordChange(keyword);
-    }
-
-    render(){
-
-        const notes = this.state.notes.filter((note) => {
-            return note.title.toLowerCase().includes(this.state.keyword.toLowerCase());
-        });
+        if(!notes.length){
+            <section className="notes-list-empty">
+                <p className="notes-list__empty">{language === "id" ? "Tidak Ada Catatan." : "No Note"}</p>
+            </section>
+        }
 
         return(
-            <section className="archive-page">
-                <h2>Catatan Arsip</h2>
-                <SearchBar keyword={this.state.keyword} keywordChange={this.onArsipKeywordChangeHandler}/>
-                <NotesList notes={notes}/>
+            <section className="archives-page">
+                <h2>{language === "id" ? "Catatan Arsip" : "Archived Notes"}</h2>
+                <SearchBar keyword={keyword} keywordChange={onKeywordChangeHandler}/>
+                <NotesList notes={filteredNotes}/>
             </section>
+            
         )
-    }
 }
 
-ArsipPage.propTypes = {
-    keyword: PropTypes.string,
-    keywordChange: PropTypes.func.isRequired
-}
-
-export default ArsipPageWrapper;
+export default ArsipPage;

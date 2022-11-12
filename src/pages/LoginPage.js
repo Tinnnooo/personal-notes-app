@@ -1,9 +1,11 @@
 import React from "react";
 import {Link} from 'react-router-dom';
 import LoginInput from "../components/LoginInput";
+import LocaleContext from "../contexts/LocaleContext";
 import { login } from "../utils/api";
 
 function LoginPage({loginSuccess}){
+    const {language} = React.useContext(LocaleContext);
     async function onLogin({email, password}){
         const {error, data} = await login({email, password});
 
@@ -14,9 +16,9 @@ function LoginPage({loginSuccess}){
 
     return(
         <section className="login-page">
-            <h2>Yuk, login untuk menggunakan aplikasi.</h2>
+            <h2>{language === "id" ? "Yuk, login untuk menggunakan aplikasi" : "Login to use app, please"}</h2>
             <LoginInput login={onLogin}/>
-            <p>Belum punya akun? <Link to="/register">Daftar di sini</Link></p>
+            <p>{language === "id" ? "Belum punya akun?" : "Don't have account?"} <Link to="/register">{language === "id" ? "Daftar di sini" : "Register here"}</Link></p>
         </section>
     )
 }
